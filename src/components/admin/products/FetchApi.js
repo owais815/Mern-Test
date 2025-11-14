@@ -99,10 +99,12 @@ export const productByCategory = async (catId) => {
   }
 };
 
-export const productByPrice = async (price) => {
+export const productByPrice = async (price, minPrice, maxPrice) => {
   try {
     let res = await axios.post(`${apiURL}/api/product/product-by-price`, {
       price,
+      minPrice,
+      maxPrice,
     });
     return res.data;
   } catch (error) {

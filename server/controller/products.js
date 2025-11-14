@@ -35,9 +35,12 @@ class Product {
         .sort({ _id: -1 });
       if (Products) {
         return res.json({ Products });
+      } else {
+        return res.json({ Products: [] });
       }
     } catch (err) {
       console.log(err);
+      return res.status(500).json({ error: "Error fetching products" });
     }
   }
 
@@ -219,21 +222,42 @@ class Product {
   }
 
   async getProductByPrice(req, res) {
-    let { price } = req.body;
-    if (!price) {
-      return res.json({ error: "All filled must be required" });
-    } else {
-      try {
-        let products = await productModel
-          .find({ pPrice: { $lt: price } })
-          .populate("pCategory", "cName")
-          .sort({ pPrice: -1 });
-        if (products) {
-          return res.json({ Products: products });
-        }
-      } catch (err) {
-        return res.json({ error: "Filter product wrong" });
+    let { price, minPrice, maxPrice } = req.body;
+
+    // Support both old format (single price) and new format (minPrice/maxPrice)
+    let query = {};
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      // New format: price range
+      query.pPrice = {};
+      if (minPrice !== null && minPrice !== "" && minPrice !== undefined) {
+        query.pPrice.$gte = parseFloat(minPrice);
       }
+      if (maxPrice !== null && maxPrice !== "" && maxPrice !== undefined) {
+        query.pPrice.$lte = parseFloat(maxPrice);
+      }
+      // If both are empty, return all products
+      if (Object.keys(query.pPrice).length === 0) {
+        query = {};
+      }
+    } else if (price) {
+      // Old format: single price (less than)
+      query.pPrice = { $lt: price };
+    } else {
+      // No price filter, return all products
+      query = {};
+    }
+
+    try {
+      let products = await productModel
+        .find(query)
+        .populate("pCategory", "cName")
+        .sort({ pPrice: -1 });
+      if (products) {
+        return res.json({ Products: products });
+      }
+    } catch (err) {
+      return res.json({ error: "Filter product wrong" });
     }
   }
 

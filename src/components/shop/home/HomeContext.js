@@ -2,6 +2,7 @@ export const homeState = {
   categoryListDropdown: false,
   filterListDropdown: false,
   searchDropdown: false,
+  filterSearchDropdown: false,
   products: null,
   loading: false,
   sliderImages: [],
@@ -15,6 +16,7 @@ export const homeReducer = (state, action) => {
         categoryListDropdown: action.payload,
         filterListDropdown: false,
         searchDropdown: false,
+        filterSearchDropdown: false,
       };
     case "filterListDropdown":
       return {
@@ -22,6 +24,7 @@ export const homeReducer = (state, action) => {
         categoryListDropdown: false,
         filterListDropdown: action.payload,
         searchDropdown: false,
+        filterSearchDropdown: false,
       };
     case "searchDropdown":
       return {
@@ -29,6 +32,15 @@ export const homeReducer = (state, action) => {
         categoryListDropdown: false,
         filterListDropdown: false,
         searchDropdown: action.payload,
+        filterSearchDropdown: false,
+      };
+    case "filterSearchDropdown":
+      return {
+        ...state,
+        categoryListDropdown: false,
+        filterListDropdown: false,
+        searchDropdown: false,
+        filterSearchDropdown: action.payload,
       };
     case "setProducts":
       return {
@@ -41,10 +53,12 @@ export const homeReducer = (state, action) => {
         products:
           action.productArray &&
           action.productArray.filter((item) => {
-            if (
-              item.pName.toUpperCase().indexOf(action.payload.toUpperCase()) !==
-              -1
-            ) {
+            const titleMatch = !action.title ||
+              item.pName.toUpperCase().indexOf(action.title.toUpperCase()) !== -1;
+            const categoryMatch = !action.category ||
+              (item.pCategory && item.pCategory.cName &&
+               item.pCategory.cName.toUpperCase().indexOf(action.category.toUpperCase()) !== -1);
+            if (titleMatch && categoryMatch) {
               return item;
             }
             return null;
